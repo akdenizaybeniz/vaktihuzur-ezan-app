@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Vakt-i Huzur | Türkiye Güncel Ezan Saatleri</title>
+
+<meta name="description" content="Vakt-i Huzur ile Türkiye genelinde il il güncel ezan saatlerini öğrenin. İmsak, sabah, öğle, ikindi, akşam ve yatsı vakitleri.">
+<meta name="keywords" content="ezan saatleri, namaz vakitleri, istanbul ezan saati, imsak vakti, ramazan">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Arial, sans-serif;
+  background:
+    linear-gradient(rgba(70,0,0,.85), rgba(70,0,0,.85)),
+    url("arka.jpg");
+  background-size:cover;
+  background-position:center;
+  color:#fff;
+}
+
+.container{
+  max-width:700px;
+  margin:auto;
+  padding:30px;
+}
+
+header{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+header img{
+  width:70px;
+}
+
+h1{
+  color:#f6c446;
+  margin:0;
+}
+
+.box{
+  background:rgba(0,0,0,.4);
+  padding:20px;
+  border-radius:12px;
+  margin-top:25px;
+}
+
+select,button{
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  border-radius:8px;
+  border:none;
+  margin-top:10px;
+}
+
+button{
+  background:#f6c446;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:hover{
+  filter:brightness(1.1);
+}
+
+.timing{
+  display:flex;
+  justify-content:space-between;
+  padding:8px 0;
+  border-bottom:1px dashed rgba(255,255,255,.2);
+}
+
+nav{
+  margin-top:30px;
+  text-align:center;
+}
+
+nav a{
+  color:#f6c446;
+  margin:0 10px;
+  text-decoration:none;
+}
+
+footer{
+  margin-top:40px;
+  font-size:13px;
+  opacity:.8;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+  <img src="logo.png" alt="Vakt-i Huzur Logo">
+  <div>
+    <h1>Vakt-i Huzur</h1>
+    <p>Türkiye Güncel Ezan Saatleri</p>
+  </div>
+</header>
+
+<div class="box">
+  <h2>📍 Şehrini Seç</h2>
+  <select id="city"></select>
+  <button onclick="getTimes()">Ezan Saatlerini Göster</button>
+</div>
+
+<div class="box" id="result" style="display:none">
+  <h2 id="cityTitle"></h2>
+  <div id="times"></div>
+</div>
+
+<nav>
+  <a href="#" onclick="showPage('home')">Ana Sayfa</a> |
+  <a href="#" onclick="showPage('about')">Hakkımızda</a> |
+  <a href="#" onclick="showPage('privacy')">Gizlilik</a> |
+  <a href="#" onclick="showPage('contact')">İletişim</a>
+</nav>
+
+
+<div class="box" id="about" style="display:none">
+  <h2>Hakkımızda</h2>
+  <p>Vakt-i Huzur, Türkiye genelinde namaz vakitlerini sade ve hızlı şekilde sunmak amacıyla hazırlanmıştır Dakika farkları olabilir,.</p>
+</div>
+
+<div class="box" id="privacy" style="display:none">
+  <h2>Gizlilik Politikası</h2>
+  <p>Sitemiz kişisel veri toplamaz. Ezan saatleri üçüncü parti açık API’lerden alınmaktadır.Dakika farkı olabilir.</p>
+</div>
+
+<div class="box" id="contact" style="display:none">
+  <h2>İletişim</h2>
+  <p>E-posta: info@vaktihuzur.com</p>
+</div>
+
+<footer>
+  © 2025 Vakt-i Huzur – Tüm Hakları Saklıdır
+</footer>
+
+</div>
+
+<script>
+const cities= [
+  "Adana","Adıyaman","Afyonkarahisar","Ağrı","Amasya","Ankara","Antalya","Artvin","Aydın","Balıkesir",
+  "Bilecik","Bingöl","Bitlis","Bolu","Burdur","Bursa","Çanakkale","Çankırı","Çorum","Denizli",
+  "Diyarbakır","Edirne","Elazığ","Erzincan","Erzurum","Eskişehir","Gaziantep","Giresun","Gümüşhane","Hakkari",
+  "Hatay","Isparta","Mersin","İstanbul","İzmir","Kars","Kastamonu","Kayseri","Kırklareli","Kırşehir",
+  "Kocaeli","Konya","Kütahya","Malatya","Manisa","Kahramanmaraş","Mardin","Muğla","Muş","Nevşehir",
+  "Niğde","Ordu","Rize","Sakarya","Samsun","Siirt","Sinop","Sivas","Tekirdağ","Tokat",
+  "Trabzon","Tunceli","Şanlıurfa","Uşak","Van","Yozgat","Zonguldak","Aksaray","Bayburt","Karaman",
+  "Kırıkkale","Batman","Şırnak","Bartın","Ardahan","Iğdır","Yalova","Karabük","Kilis","Osmaniye","Düzce"
+];
+
+
+const select = document.getElementById("city");
+cities.forEach(c=>{
+  let o=document.createElement("option");
+  o.value=c;
+  o.textContent=c;
+  select.appendChild(o);
+});
+
+async function getTimes(){
+  const city=select.value;
+  document.getElementById("cityTitle").innerText=city+" Ezan Saatleri";
+
+  const res=await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=Turkey&method=13`);
+  const data=await res.json();
+  const t=data.data.timings;
+
+  const list=[
+    ["İmsak",t.Imsak],
+    ["Sabah",t.Fajr],
+    ["Öğle",t.Dhuhr],
+    ["İkindi",t.Asr],
+    ["Akşam",t.Maghrib],
+    ["Yatsı",t.Isha]
+  ];
+
+  let html="";
+  list.forEach(i=>{
+    html+=`<div class="timing"><span>${i[0]}</span><strong>${i[1]}</strong></div>`;
+  });
+
+  document.getElementById("times").innerHTML=html;
+  document.getElementById("result").style.display="block";
+}
+
+function showPage(p){
+  ["about","privacy","contact"].forEach(id=>{
+    document.getElementById(id).style.display="none";
+  });
+  if(p!=="home") document.getElementById(p).style.display="block";
+}
+</script>
+
+</body>
+</html>
